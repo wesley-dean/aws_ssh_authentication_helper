@@ -393,6 +393,6 @@ for key_id in $(aws iam list-ssh-public-keys --user-name "${username}" --query "
   remote_user_exists=0 # true
 done
 
-create_local_user "$username" "$numeric_uid"
-create_local_group "$local_group" "$numeric_gid"
-add_user_to_group "$username" "$local_group"
+create_local_user "$username" "$numeric_uid" || exit 1
+create_local_group "$local_group" "$numeric_gid" || exit 1
+add_user_to_group "$username" "$local_group" || exit 1
