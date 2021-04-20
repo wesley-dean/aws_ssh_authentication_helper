@@ -460,13 +460,13 @@ get_public_keys() {
 show_help() {
   sed --zero-terminated \
     --regexp-extended \
-    --expression='s/.*@[Ff]ile *(.*)@[Aa]uthor *([^\n]*).*/Usage: \1Author: \2\n\n/' \
+    --expression='s/.*@[Ff]ile *(.*)@[Bb]rief *(.*)@[Aa]uthor *([^\n]*).*/\1==========\n\nOverview\n----------\n\n\2Author\n----------\n\3\n\n/' \
     --regexp-extended \
     --expression='s/\B@[a-z]* *//g' \
     --expression 's/## *//g' \
     "$0"
 
-  echo "Usage:"
+  echo -e "Parameters:\n----------\n"
 
  sed \
    --quiet \
@@ -476,7 +476,7 @@ show_help() {
    | sort --ignore-case
 
   echo
-  echo "# Defaults:"
+  echo -e "Defaults:\n----------\n"
   echo "*    create_user   = '$DEFAULT_CREATE_USER'"
   echo "*    remove_user   = '$DEFAULT_REMOVE_USER'"
   echo "*    create_group  = '$DEFAULT_CREATE_GROUP'"
