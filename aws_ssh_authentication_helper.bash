@@ -26,26 +26,23 @@
 ## When users attempt to connect, this tool can create their accounts
 ## automatically.  Accounts will only be created if the username matches
 ## an AWS IAM user.  Moreover, if an AWS IAM group is provided, they will
-## only be created if that AWS IAM user exists in that AWS IAM group.  This
-## functionality is enabled by default but may be disabled via the
-## 'create_user' environment variable (set it to "false" or "no").
+## only be created if that AWS IAM user exists in that AWS IAM group.
 ##
 ## The tool also supports group management in that when users attempt to
 ## authenticate, they can be automatically added to a local (non-IAM) group.
-## If the group doesn't exist, it will be created.  By default, this group
-## is 'users' but that can be changed via environment variable (local_group).
+## If the group doesn't exist, it will be created.
 ##
 ## The adding of users to groups, while it takes place at authentication
 ## time, is not restricted to only new users being created for the first
-## time.  That is, if the local_group setting is updated and a previously
+## time.  That is, if the manage group setting is enabled and a previously
 ## seen user attempts to login, they will be added to that group.
 ##
 ## When a user attempts to authenticate and either they do not belong to
 ## the required AWS IAM group or there is no corresponding AWS IAM user
-## account, their local account can be removed.  This functionality is
-## disabled by default but can be enabled via an environment variable
-## (remove_user).  Regardless of that environment variable, users who
-## do not have an enabled AWS IAM user account or are not in a specified
+## account, their local account can be removed.
+##
+## Regardless of the remove user setting, users who do not have an
+## enabled AWS IAM user account or are not in a specified
 ## AWS IAM group will be denied authentication.
 ##
 ## It's notable that changes made in AWS only affect new connections;
@@ -54,30 +51,22 @@
 ## etc..  Manual intervention would be required to terminate current,
 ## active sessions.
 ##
-## Environment variables:
-##
-## * local_group: the name of the local group users to which users
-##   should be added (default = 'users')
-##
-## * create_user: whether or not to create accounts for previously
-##   unseen users when they attempt to connect (default = true)
-##
-## * remove_user: whether or not to delete accounts disabled or
-##   removed from the AWS side when they attempt to connect (default = false)
-##
-## * create_group: whether or not to create the local_group when the
-##   user attempts to login (default = true)
-##
-## * manage_group: wheether or not to add users to the local_group when
-##   they attempt to login (default = true)
-##
 ## @author Wes Dean <wdean@flexion.us>
 
 
+## @var DEFAULT_CREATE_USER default for whether to create local users
 DEFAULT_CREATE_USER="false"
+
+## @var DEFAULT_REMOVE_USER default for whether to remove local users
 DEFAULT_REMOVE_USER="false"
+
+## @var DEFAULT_CREATE_GROUP default for whether to create local groups
 DEFAULT_CREATE_GROUP="false"
+
+## @var DEFAULT_MANAGE_GROUP default for whether to manage local group members
 DEFAULT_MANAGE_GROUP="false"
+
+## @var DEFAULT_REMOTE_GROUP defaut remote group to query
 DEFAULT_REMOTE_GROUP="sshusers"
 
 
@@ -100,6 +89,7 @@ DEFAULT_REMOTE_GROUP="sshusers"
 is_true() {
   [[ "$1" =~ ^[[:space:]]*[TtYy0] ]]
 }
+
 
 ## @fn is_false()
 ## @brief if we're passed a false falue, return 1 (False)
@@ -320,7 +310,6 @@ name_to_id() {
   done
 
   return 1
-
 }
 
 
@@ -487,12 +476,12 @@ show_help() {
    | sort --ignore-case
 
   echo
-  echo "Defaults:"
-  echo "    create_user   = '$DEFAULT_CREATE_USER'"
-  echo "    remove_user   = '$DEFAULT_REMOVE_USER'"
-  echo "    create_group  = '$DEFAULT_CREATE_GROUP'"
-  echo "    manage_group  = '$DEFAULT_MANAGE_GROUP'"
-  echo "    remote_group  = '$DEFAULT_REMOTE_GROUP'"
+  echo "# Defaults:"
+  echo "*    create_user   = '$DEFAULT_CREATE_USER'"
+  echo "*    remove_user   = '$DEFAULT_REMOVE_USER'"
+  echo "*    create_group  = '$DEFAULT_CREATE_GROUP'"
+  echo "*    manage_group  = '$DEFAULT_MANAGE_GROUP'"
+  echo "*    remote_group  = '$DEFAULT_REMOTE_GROUP'"
   echo
 }
 
