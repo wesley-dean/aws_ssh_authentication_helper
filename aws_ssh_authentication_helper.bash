@@ -73,6 +73,14 @@
 ##
 ## @author Wes Dean <wdean@flexion.us>
 
+
+DEFAULT_CREATE_USER="false"
+DEFAULT_REMOVE_USER="false"
+DEFAULT_CREATE_GROUP="false"
+DEFAULT_MANAGE_GROUP="false"
+DEFAULT_REMOTE_GROUP="sshusers"
+
+
 ## @fn is_true()
 ## @brief if we're passed a true value, return 0 (True)
 ## @details
@@ -352,47 +360,204 @@ check_id() {
 }
 
 
-username="${1?No username provided}"
+## @fn check_remote_group()
+## @brief determine if a username belongs to an AWS IAM group
+## @details
+## This will check to see if, for an AWS IAM user's AWS IAM groups,
+## there exists an entry for the remote_group.
+## @param username the AWS IAM user to check
+## @param remote_group the AWS IAM group to find
+## @retval 0 (True) if the user's groups includes the provided group
+## @retval 1 (False) if the user's groups does Not include the provided group
+## @par Example
+## @code
+## if [ -n "remote_group" ] \
+## && check_remote_group "$username" "$remote_group" ; then
+##   echo "Congratulations on belonging to the group"
+## else
+##   echo "You don't belong to the group.  Talk to an admin."
+## fi
+##@endcode
+check_remote_group() {
 
-local_group="${local_group:-users}"
-local_user_exists="$(getent passwd "$username" > /dev/null ; echo "$?")"
-local_group_exists="$(getent group "$local_group" > /dev/null ; echo "$?")"
-
-remote_group="${remote_group:-}"
-remote_user_exists=1 # false (will check later)
-remote_group_exists=1 # false (will check later)
-
-create_user="${create_user:-true}"
-remove_user="${remove_user:-false}"
-create_group="${create_group:-true}"
-manage_group="${manage_group:-true}"
-
-config_file="${config_file:-/etc/aws_ssh_authentication_helper.conf}"
-
-numeric_uid="$(name_to_id "$username" "passwd" || exit 1)"
-numeric_gid="$(name_to_id "$local_group" "group" || exit 1)"
-
-if [ -e "${config_file}" ] ; then
-  #shellcheck disable=SC1090
-  . "${config_file}"
-fi
-
-if [ -n "${remote_group}" ] ; then
+  username="${1?No username passed}"
+  remote_group="${2?No remote_group passed}"
 
   remote_group_exists="$(aws iam get-group --group-name "$remote_group" > /dev/null 2>&1 ; echo $?)"
 
   if is_true "$remote_group_exists" ; then
     if ! aws iam list-groups-for-user --user-name "${username}" --output text --query "Groups[?GroupName=='${remote_group}'].GroupName" | grep -q "${remote_group}" ; then
-      remove_local_user "$username" ; exit 1
+      remove_local_user "$username" ; return 1
     fi
   fi
-fi
 
-for key_id in $(aws iam list-ssh-public-keys --user-name "${username}" --query "SSHPublicKeys[?Status=='Active'].SSHPublicKeyId" --output text) ; do
-  aws iam get-ssh-public-key --user-name "${username}" --ssh-public-key-id "${key_id}" --encoding SSH --query "SSHPublicKey.SSHPublicKeyBody" --output text
-  remote_user_exists=0 # true
+  return 0
+}
+
+
+## @fn check_remote_user()
+## @brief determine if a username exists remotely
+## @param username the username to check
+## @retval 0 (True) if the user exists (and has an ARN)
+## @retval 1 (False) if the user does not exist
+## @par Example
+## @code
+## if check_remote_user "wes" ; then
+##   echo "Yay"
+## else
+##   echo "Boooooo"
+## fi
+## @endcode
+check_remote_user() {
+  username="${1?No username provided}"
+
+  user_data="$(aws iam list-users --query "Users[?UserName=='$username'].Arn" --output text)"
+
+  if [[ "$user_data" =~ arn:aws ]] ; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+
+## @fn get_public_keys()
+## @brief write the public portion of the user's SSH keys to STDOUT
+## @details
+## For a given user, query AWS for all of their active SSH public keys
+## and write them all to STDOUT.  If there are no public keys for the
+## user, don't write anything (and return failure).
+## @param username the username to query
+## @retval 0 (True) and all active public keys written to STDOUT
+## @retval 1 (False)
+get_public_keys() {
+
+  local found_public_key=1
+  for key_id in $(aws iam list-ssh-public-keys --user-name "${username}" --query "SSHPublicKeys[?Status=='Active'].SSHPublicKeyId" --output text) ; do
+    aws iam get-ssh-public-key --user-name "${username}" --ssh-public-key-id "${key_id}" --encoding SSH --query "SSHPublicKey.SSHPublicKeyBody" --output text
+    found_public_key=0
+  done
+
+  if [ $found_public_key -eq 0 ] ; then
+    return 0 # True
+  else
+    return 1 # False
+  fi
+}
+
+
+## @fn show_help()
+## @brief display a help message then exit the program
+## @details
+## The first sed script takes line starting with the first Doxygen-
+## style 'file' parameter up to and including the first line with
+## the 'author' parameter; this becomes the first part of the help
+## message.
+##
+## So, to use this, the first part of the Bash script needs to
+## be Doxygen-style markup starting with the 'file' parameter
+## and should end with the 'author' parameter's line (that is,
+## we use the entire line that the 'author' parameter uses).
+##
+## Next, we use another sed script that looks for options to
+## getopts that have comments starting with ##- and extracts
+## the option followed by the comment.
+## @retval 0 (True) if sed was happy
+## @retval 1 (False) if sed was NOT happy
+## @par Example
+## @code
+## show_help ; exit 0
+## @endcode
+show_help() {
+  sed --zero-terminated \
+    --regexp-extended \
+    --expression='s/.*@[Ff]ile *(.*)@[Aa]uthor *([^\n]*).*/Usage: \1Author: \2\n\n/' \
+    --regexp-extended \
+    --expression='s/\B@[a-z]* *//g' \
+    --expression 's/## *//g' \
+    "$0"
+
+  echo "Usage:"
+
+ sed \
+   --quiet \
+   --regexp-extended \
+   --expression='s/^ *([A-Z]) * \).*#{2}- */    -\1 : /ip' \
+   "$0" \
+   | sort --ignore-case
+
+  echo
+  echo "Defaults:"
+  echo "    create_user   = '$DEFAULT_CREATE_USER'"
+  echo "    remove_user   = '$DEFAULT_REMOVE_USER'"
+  echo "    create_group  = '$DEFAULT_CREATE_GROUP'"
+  echo "    manage_group  = '$DEFAULT_MANAGE_GROUP'"
+  echo "    remote_group  = '$DEFAULT_REMOTE_GROUP'"
+  echo
+}
+
+create_user="$(is_true "$DEFAULT_CREATE_USER")"   # -u
+remove_user="$(is_true "$DEFAULT_REMOVE_USER")"   # -r
+create_group="$(is_true "$DEFAULT_CREATE_GROUP")" # -c
+manage_group="$(is_true "$DEFAULT_MANAGE_GROUP")" # -m
+remote_group="$DEFAULT_REMOTE_GROUP"              # -g
+
+while getopts "urcmg:h" option ; do
+  case "$option" in
+    u ) create_user=$((1 - create_user)) ;; ##- create local user
+    r ) remove_user=$((1 - remove_user)) ;; ##- remove local user
+    h ) show_help ; exit 0 ;; ##- show help text
+    g ) remote_group="$OPTARG" ;; ##- the remote group to query
+    c ) create_group=$((1 - create_group)) ;; ##- create local group
+    m ) manage_group=$((1 - manage_group)) ;; ##- mange local group members
+    * ) echo "Invalid option '$option'" 1>&2 ; show_help 1>&2 ; exit 1 ;;
+  esac
 done
 
-create_local_user "$username" "$numeric_uid" || exit 1
-create_local_group "$local_group" "$numeric_gid" || exit 1
-add_user_to_group "$username" "$local_group" || exit 1
+shift $((OPTIND - 1))
+
+username="${1?No username provided}"
+
+if ! numeric_uid="$(name_to_id "$username" "passwd")" ; then
+  logger -s "Could not find an appropriate UID for '$username'"
+  exit 1
+fi
+
+if ! numeric_gid="$(name_to_id "$local_group" "group")" ; then
+  logger is "Could not find an appropriate GID for '$local_group'"
+  exit 1
+fi
+
+local_user_exists="$(getent passwd "$username" > /dev/null ; echo "$?")"
+local_group_exists="$(getent group "$local_group" > /dev/null ; echo "$?")"
+
+if ! remote_user_exists="$(check_remote_user "$username")" ; then
+  logger -s "User '$username' does not exist remotely."
+  exit 1
+fi
+
+if [ -n "$remote_group" ] \
+&& ! check_remote_group "$username" "$remote_group" ; then
+  logger -s "This user does not belong to the provided group"
+  exit 1
+fi
+
+if ! create_local_user "$username" "$numeric_uid" ; then
+  logger -s "Could not create local user '$username' (uid: $numeric_uid)"
+  exit 1
+fi
+
+if ! create_local_group "$local_group" "$numeric_gid" ; then
+  logger -s "Could not create local group '$local_group' (gid: $numeric_gid)"
+  exit 1
+fi
+
+if ! add_user_to_group "$username" "$local_group" ; then
+  logger -s "Could not add user '$username' to group '$local_group'"
+  exit 1
+fi
+
+if ! get_public_keys "$username" ; then
+  logger -s "Could not retrieve SSH public keys for '$username'"
+  exit 1
+fi
