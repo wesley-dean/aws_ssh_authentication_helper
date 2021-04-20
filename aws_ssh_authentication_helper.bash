@@ -471,19 +471,23 @@ show_help() {
  sed \
    --quiet \
    --regexp-extended \
-   --expression='s/^ *([A-Z]) * \).*#{2}- */    -\1 : /ip' \
+   --expression='s/^ *([A-Z]) * \).*#{2}- */*  -\1 : /ip' \
    "$0" \
    | sort --ignore-case
 
   echo
   echo -e "Defaults:\n----------\n"
-  echo "*    create_user   = '$DEFAULT_CREATE_USER'"
-  echo "*    remove_user   = '$DEFAULT_REMOVE_USER'"
-  echo "*    create_group  = '$DEFAULT_CREATE_GROUP'"
-  echo "*    manage_group  = '$DEFAULT_MANAGE_GROUP'"
-  echo "*    remote_group  = '$DEFAULT_REMOTE_GROUP'"
-  echo
+
+  sed -En --expression='
+    /^[[:space:]]*##[[:space:]]*@var/ {
+       s/^[[:space:]]*##[[:space:]]*@var[[:space:]]*((DEFAULT_)?([^[:space:]]+))(.*)/*  \3: \4/;
+       p;
+       n;
+       s/([^=]*=)(.*)$/   default: \2/;
+       p;
+    }' < "$0"
 }
+
 
 create_user="$(is_true "$DEFAULT_CREATE_USER")"   # -u
 remove_user="$(is_true "$DEFAULT_REMOVE_USER")"   # -r
