@@ -116,6 +116,36 @@ is_false() {
 }
 
 
+## @fm md_header()
+## @brief display a given header along with the appropriate markdown
+## @details
+## Long story short, it became problematic to use the prefix notation
+## for markdown headers (prepending a '#' for each level of header)
+## and the show_help() function plus it looked ugly to have underlines
+## that were a different length than the header PLUS it sucked to have
+## to include extra newlines after the underline to make the markdown
+## lint properly, so this silly function handles all of that for us.
+## @param header string to use as a header
+## @param character the character to use as an underline ('-' or '=')
+## @retval 0 (True) if echo worked
+## @retval 1 (False) if echo failed somehow
+## @par Example
+## @code
+## md_header "Awesomeness" "-"
+## @endcode
+md_header() {
+  local header="${1:-header}"
+  local character="${2:-=}"
+
+  echo ""
+  echo -e "$header"
+  # shellcheck disable=SC2034
+  for n in $(seq 1 "${#header}") ; do
+    echo -n "$character"
+  done
+  echo ""
+}
+
 ## @fn create_local_group()
 ## @brief if we're allowed, create a local group
 ## @details
@@ -458,15 +488,18 @@ get_public_keys() {
 ## show_help ; exit 0
 ## @endcode
 show_help() {
+
+  md_header "$(basename "$0")" "="
+
   sed --zero-terminated \
     --regexp-extended \
-    --expression='s/.*@[Ff]ile *(.*)@[Bb]rief *(.*)@[Aa]uthor *([^\n]*).*/\1==========\n\nOverview\n----------\n\n\2Author\n----------\n\3\n\n/' \
+    --expression='s/.*@[Bb]rief *(.*)@[Aa]uthor *([^\n]*).*/\nOverview\n--------\n\n\1Author\n------\n\2\n\n/' \
     --regexp-extended \
     --expression='s/\B@[a-z]* *//g' \
     --expression 's/## *//g' \
     "$0"
 
-  echo -e "Parameters\n----------\n"
+  md_header "Parameters" "-"
 
  sed \
    --quiet \
@@ -476,7 +509,8 @@ show_help() {
    | sort --ignore-case
 
   echo
-  echo -e "Defaults\n----------\n"
+
+  md_header "Defaults" "-"
 
   sed -En --expression='
     /^[[:space:]]*##[[:space:]]*@var/ {
