@@ -466,7 +466,7 @@ show_help() {
     --expression 's/## *//g' \
     "$0"
 
-  echo -e "Parameters:\n----------\n"
+  echo -e "Parameters\n----------\n"
 
  sed \
    --quiet \
@@ -476,14 +476,14 @@ show_help() {
    | sort --ignore-case
 
   echo
-  echo -e "Defaults:\n----------\n"
+  echo -e "Defaults\n----------\n"
 
   sed -En --expression='
     /^[[:space:]]*##[[:space:]]*@var/ {
        s/^[[:space:]]*##[[:space:]]*@var[[:space:]]*((DEFAULT_)?([^[:space:]]+))(.*)/*  \3: \4/;
        p;
        n;
-       s/([^=]*=)(.*)$/   default: \2/;
+       s/([^=]*=)(.*)$/   (default: \2)/;
        p;
     }' < "$0"
 }

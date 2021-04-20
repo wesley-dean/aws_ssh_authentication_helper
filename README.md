@@ -58,7 +58,7 @@ Author
 ----------
 Wes Dean <wdean@flexion.us>
 
-Parameters:
+Parameters
 ----------
 
 *  -c : create local group
@@ -68,16 +68,16 @@ Parameters:
 *  -r : remove local user
 *  -u : create local user
 
-Defaults:
+Defaults
 ----------
 
 *  CREATE_USER:  default for whether to create local users
-   default: "false"
+   (default: "false")
 *  REMOVE_USER:  default for whether to remove local users
-   default: "false"
+   (default: "false")
 *  CREATE_GROUP:  default for whether to create local groups
-   default: "false"
+   (default: "false")
 *  MANAGE_GROUP:  default for whether to manage local group members
-   default: "false"
+   (default: "false")
 *  REMOTE_GROUP:  defaut remote group to query
-   default: "sshusers"
+   (default: "sshusers")
