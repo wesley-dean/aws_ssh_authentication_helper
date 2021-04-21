@@ -491,7 +491,8 @@ show_help() {
 
   md_header "$(basename "$0")" "="
 
-  sed --zero-terminated \
+  sed \
+    --zero-terminated \
     --regexp-extended \
     --expression='s/.*@[Bb]rief *(.*)@[Aa]uthor *([^\n]*).*/\nOverview\n--------\n\n\1Author\n------\n\2\n\n/' \
     --regexp-extended \
@@ -508,18 +509,20 @@ show_help() {
    "$0" \
    | sort --ignore-case
 
-  echo
-
   md_header "Defaults" "-"
 
-  sed -En --expression='
-    /^[[:space:]]*##[[:space:]]*@var/ {
-       s/^[[:space:]]*##[[:space:]]*@var[[:space:]]*((DEFAULT_)?([^[:space:]]+))(.*)/*  \3: \4/;
-       p;
-       n;
-       s/([^=]*=)(.*)$/   (default: \2)/;
-       p;
-    }' < "$0"
+  sed \
+    --regexp-extended \
+    --quiet \
+    --expression='
+      /^[[:space:]]*##[[:space:]]*@var/ {
+         s/^[[:space:]]*##[[:space:]]*@var[[:space:]]*((DEFAULT_)?([^[:space:]]+))(.*)/*  \3: \4/;
+         p;
+         n;
+         s/([^=]*=)(.*)$/   (default: \2)/;
+         p;
+      }' \
+    "$0"
 }
 
 
