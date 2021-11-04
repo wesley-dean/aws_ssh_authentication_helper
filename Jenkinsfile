@@ -86,6 +86,23 @@ pipeline {
             }
         }
 
+        stage ('Dockerfile Lint') {
+            agent {
+                docker {
+                    image 'hadolint/hadolint:latest-alpine'
+                    reuseNode true
+                    args '--entrypoint=""'
+                }
+            }
+
+            steps {
+                script {
+                    sh 'find . -iname "*dockerfile*" -exec hadolint {} \\;'
+                }
+            }
+        }
+
+
         stage ('YAML Lint') {
             agent {
                 docker {
@@ -117,7 +134,7 @@ pipeline {
             }
         }
 
-        stage ('Checkmake') {
+        stage ('Makefile Lint') {
             agent {
                 docker {
                     image 'cytopia/checkmake'
@@ -129,6 +146,22 @@ pipeline {
             steps {
                 script {
                     sh 'find . -name Makefile -exec checkmake {} \\;'
+                }
+            }
+        }
+
+        stage ('Terraform Lint') {
+            agent {
+                docker {
+                    image 'ghcr.io/terraform-linters/tflint-bundle:latest'
+                    args  '--entrypoint=""'
+                    reuseNode true
+                }
+            }
+
+            steps {
+                script {
+                    sh 'tflint'
                 }
             }
         }
