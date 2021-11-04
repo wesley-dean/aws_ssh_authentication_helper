@@ -62,20 +62,21 @@ pipeline {
 
             steps {
                 script {
-                    def tests = ['file-trailing-space', 'file-utf8']
-                    for (int i = 0; i < tests.size(); ++i) {
-                        sh "${tests[i]} --ignore='.git,.svn' --text --path='.'"
+                    def tests = [
+                        'file-trailing-space': '--text', 
+                        'file-utf8':           '--text',
+                        'syntax-bash':         '--extension=bash',
+                        'syntax-markdown':     '--extension=md',
+                        'syntax-perl':         '--extension=pl',
+                        'syntax-php':          '--extension=php,phps',
+                        'syntax-ruby':         '--extension=rb',
+                        'syntax-sh':           '--extension=sh',
+                    ]
+
+                    tests.each() {
+                        sh "$it.key $it.value --ignore='.git,.svn' --path='.'"
                     }
-                    
-                    sh "syntax-bash --ignore='.git,.svn' --extension=bash --path=."
-                    sh "syntax-markdown --ignore='.git,.svn' --extension=md --path=."
-                    sh "syntax-perl --ignore='.git,.svn' --extension=pl --path=."
-                    sh "syntax-php --ignore='.git,.svn' --extension=php,phps --path=."
-                    sh "syntax-ruby --ignore='.git,.svn' --extension=rb --path=."
-                    sh "syntax-sh --ignore='.git,.svn' --extension=sh --path=."
                 }
-                 
-                
             }
         }
     }
