@@ -39,6 +39,7 @@ pipeline {
             }
         }
 
+
         stage ('Semgrep') {
             agent {
                 docker {
@@ -52,6 +53,7 @@ pipeline {
                 sh 'semgrep --config auto --error "${WORKSPACE}"'
             }
         }
+
 
         stage ('Basic File Checks') {
             agent {
@@ -77,6 +79,7 @@ pipeline {
             }
         }
 
+
         stage ('Syntax Checks') {
             agent {
                 docker {
@@ -84,6 +87,7 @@ pipeline {
                     reuseNode true
                 }
             }
+
 
             steps {
                 script {
@@ -106,6 +110,7 @@ pipeline {
             }
         }
 
+
         stage ('Dockerfile Lint') {
             agent {
                 docker {
@@ -121,6 +126,7 @@ pipeline {
                 }
             }
         }
+
 
         stage ('YAML Lint') {
             agent {
@@ -138,6 +144,7 @@ pipeline {
             }
         }
 
+
         stage ('Ansible Lint') {
             agent {
                 docker {
@@ -152,6 +159,7 @@ pipeline {
                 }
             }
         }
+
 
         stage ('Makefile Lint') {
             agent {
@@ -169,6 +177,7 @@ pipeline {
             }
         }
 
+
         stage ('Terraform Lint') {
             agent {
                 docker {
@@ -185,6 +194,7 @@ pipeline {
             }
         }
 
+
         stage ('TFSec') {
             agent {
                 docker {
@@ -193,7 +203,6 @@ pipeline {
                     reuseNode true
                 }
             }
-
 
             steps {
                 script {
