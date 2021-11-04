@@ -88,19 +88,19 @@ pipeline {
             steps {
                 script {
                     def tests = [
-                        'syntax-bash':           '--extension=bash',
-                        'syntax-css':            '--extension=css',
-                        'syntax-js':             '--extension=js',
-                        'syntax-json':           '--extension=json',
-                        'syntax-markdown'  :     '--extension=md',
-                        'syntax-perl':           '--extension=pl',
-                        'syntax-php':            '--extension=php,phps',
-                        'syntax-ruby':           '--extension=rb',
-                        'syntax-sh':             '--extension=sh',
+                        'syntax-bash':           'bash',
+                        'syntax-css':            'css',
+                        'syntax-js':             'js',
+                        'syntax-json':           'json',
+                        'syntax-markdown':       'md',
+                        'syntax-perl':           'pl',
+                        'syntax-php':            'php,phps',
+                        'syntax-ruby':           'rb',
+                        'syntax-sh':             'sh',
                     ]
 
                     tests.each() {
-                        sh "$it.key $it.value --ignore='.git,.svn' --path='.'"
+                        sh "$it.key --extension=$it.value --ignore='.git,.svn' --path='.'"
                     }
                 }
             }
