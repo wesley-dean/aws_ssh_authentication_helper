@@ -88,15 +88,15 @@ pipeline {
             steps {
                 script {
                     def tests = [
-                        'syntax-bash':           'bash',
-                        'syntax-css':            'css',
-                        'syntax-js':             'js',
-                        'syntax-json':           'json',
-                        'syntax-markdown':       'md',
-                        'syntax-perl':           'pl',
-                        'syntax-php':            'php,phps',
-                        'syntax-ruby':           'rb',
-                        'syntax-sh':             'sh',
+                        'syntax-bash':     'bash',
+                        'syntax-css':      'css',
+                        'syntax-js':       'js',
+                        'syntax-json':     'json',
+                        'syntax-markdown': 'md',
+                        'syntax-perl':     'pl',
+                        'syntax-php':      'php,phps',
+                        'syntax-ruby':     'rb',
+                        'syntax-sh':       'sh',
                     ]
 
                     tests.each() {
@@ -181,6 +181,23 @@ pipeline {
             steps {
                 script {
                     sh 'tflint'
+                }
+            }
+        }
+
+        stage ('TFSec') {
+            agent {
+                docker {
+                    image 'tfsec/tfsec'
+                    args '--entrypoint=""'
+                    reuseNode true
+                }
+            }
+
+
+            steps {
+                script {
+                    sh 'tfsec'
                 }
             }
         }
