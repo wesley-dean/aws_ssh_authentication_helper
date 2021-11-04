@@ -52,8 +52,7 @@ pipeline {
                 sh 'semgrep --config auto --error "${WORKSPACE}"'
             }
         }
-
-        stage ('File Lint') {
+        stage ('Basic File Checks') {
             agent {
                 docker {
                     image 'cytopia/awesome-ci'
@@ -68,6 +67,26 @@ pipeline {
                         'file-trailing-space':   '--text',
                         'file-utf8':             '--text',
                         'git-conflicts':         '--text',
+                    ]
+
+                    tests.each() {
+                        sh "$it.key $it.value --ignore='.git,.svn' --path='.'"
+                    }
+                }
+            }
+        }
+
+        stage ('Syntax Checks') {
+            agent {
+                docker {
+                    image 'cytopia/awesome-ci'
+                    reuseNode true
+                }
+            }
+
+            steps {
+                script {
+                    def tests = [
                         'syntax-bash':           '--extension=bash',
                         'syntax-css':            '--extension=css',
                         'syntax-js':             '--extension=js',
