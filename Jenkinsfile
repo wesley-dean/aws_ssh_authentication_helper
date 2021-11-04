@@ -52,6 +52,7 @@ pipeline {
                 sh 'semgrep --config auto --error "${WORKSPACE}"'
             }
         }
+
         stage ('Basic File Checks') {
             agent {
                 docker {
@@ -120,7 +121,6 @@ pipeline {
                 }
             }
         }
-
 
         stage ('YAML Lint') {
             agent {
