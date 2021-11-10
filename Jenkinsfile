@@ -14,7 +14,7 @@ pipeline {
         branch         = "$params.branch"
         build_time = sh(script: 'date --rfc-3339=seconds',
             returnStdout: true).trim()
-        no_proto_repo_url = sh(script: 'echo "${repository_url}" | sed -Ee "s|^https?://||"',
+        no_proto_repo_url = sh(script: "echo '${repository_url}' | sed -Ee 's|^https?://||'",
             returnStdout: true).trim()
         GIT_SSH_COMMAND = 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
         GROOVY_NPM_GROOVY_LINT_ARGUMENTS = '--no-insight'
