@@ -129,7 +129,6 @@
 ##
 ## @author Wes Dean <wdean@flexion.us>
 
-
 ## @var DEFAULT_CREATE_USER default for whether to create local users
 DEFAULT_CREATE_USER="false"
 
@@ -148,7 +147,6 @@ DEFAULT_REMOTE_GROUP=""
 ## @var DEFAULT_LOCAL_GROUP default local group to manage
 DEFAULT_LOCAL_GROUP="users"
 
-
 ## @fn is_true()
 ## @brief if we're passed a true value, return 0 (True)
 ## @details
@@ -166,9 +164,8 @@ DEFAULT_LOCAL_GROUP="users"
 ## if is_true "Yes" ; then echo "Yay" ; else echo "Booooo" ; fi
 ## @endcode
 is_true() {
-  [[ "$1" =~ ^[[:space:]]*[TtYy0] ]]
+	[[ "$1" =~ ^[[:space:]]*[TtYy0] ]]
 }
-
 
 ## @fn is_false()
 ## @brief if we're passed a false falue, return 1 (False)
@@ -191,9 +188,8 @@ is_true() {
 ## is_false "$response" && exit 1
 ## @endcode
 is_false() {
-  [[ "$1" =~ ^[[:space:]]*[FfNn1] ]]
+	[[ "$1" =~ ^[[:space:]]*[FfNn1] ]]
 }
-
 
 ## @fm md_header()
 ## @brief display a given header along with the appropriate markdown
@@ -213,17 +209,17 @@ is_false() {
 ## md_header "Awesomeness" "-"
 ## @endcode
 md_header() {
-  local header="${1:-header}"
-  local character="${2:-=}"
+	local header="${1:-header}"
+	local character="${2:-=}"
 
-  echo ""
-  echo -e "$header"
-  # shellcheck disable=SC2034
-  for n in $(seq 1 "${#header}") ; do
-    echo -n "$character"
-  done
-  echo ""
-  echo ""
+	echo ""
+	echo -e "$header"
+	# shellcheck disable=SC2034
+	for n in $(seq 1 "${#header}"); do
+		echo -n "$character"
+	done
+	echo ""
+	echo ""
 }
 
 ## @fn create_local_group()
@@ -240,17 +236,16 @@ md_header() {
 ## create_local_group "sshusers" 1003
 ## @endcode
 create_local_group() {
-  local local_group="${1?No group provided}"
-  local local_gid="${2?No GID provided}"
-  if is_true "$create_group" \
-  && [ -n "$local_group" ] \
-  && is_false "$local_group_exists" ; then
-    groupadd -g "$local_gid" "$local_group" || return 1
-  fi
+	local local_group="${1?No group provided}"
+	local local_gid="${2?No GID provided}"
+	if is_true "$create_group" &&
+		[ -n "$local_group" ] &&
+		is_false "$local_group_exists"; then
+		groupadd -g "$local_gid" "$local_group" || return 1
+	fi
 
-  return 0
+	return 0
 }
-
 
 ## @fn add_user_to_local_group()
 ## @brief if we're allowed to manage groups, adds user to a local group
@@ -265,17 +260,16 @@ create_local_group() {
 ## add_user_to_local_group "wes" "sshusers" || exit 1
 ## @endcode
 add_user_to_local_group() {
-  local username="${1?No username provided}"
-  local local_group="${2?No group name provided}"
+	local username="${1?No username provided}"
+	local local_group="${2?No group name provided}"
 
-  if is_true "$manage_group" \
-  && [ -n "$local_group" ] ; then
-    adduser "$username" "$local_group" > /dev/null || return 1
-  fi
+	if is_true "$manage_group" &&
+		[ -n "$local_group" ]; then
+		adduser "$username" "$local_group" >/dev/null || return 1
+	fi
 
-  return 0
+	return 0
 }
-
 
 ## @fn create_local_user()
 ## @brief if we're allowed to create a user, create the user
@@ -291,16 +285,15 @@ add_user_to_local_group() {
 ## create_local_user "wes" || exit 1
 ## @endcode
 create_local_user() {
-  local username="${1?No username provided}"
-  if is_true "$create_user" \
-  && is_true "$remote_user_exists" \
-  && is_false "$local_user_exists" ; then
-    useradd -u "$numeric_uid" -m  "$username" > /dev/null || return 1
-  fi
+	local username="${1?No username provided}"
+	if is_true "$create_user" &&
+		is_true "$remote_user_exists" &&
+		is_false "$local_user_exists"; then
+		useradd -u "$numeric_uid" -m "$username" >/dev/null || return 1
+	fi
 
-  return 0
+	return 0
 }
-
 
 # @fn remove_local_user()
 ## @brief if we're allowed to remove a user, remove the user
@@ -328,16 +321,15 @@ create_local_user() {
 ## remove_local_user "lastguy"
 ## @endcode
 remove_local_user() {
-  local username="${1?No username provided}"
-  if is_true "$remove_user" \
-  && is_true "$remote_user_exists" \
-  && is_true "$local_user_exists" ; then
-    deluser -r "$username" || return 1
-  fi
+	local username="${1?No username provided}"
+	if is_true "$remove_user" &&
+		is_true "$remote_user_exists" &&
+		is_true "$local_user_exists"; then
+		deluser -r "$username" || return 1
+	fi
 
-  return 0
+	return 0
 }
-
 
 ## @fn hex_to_dec()
 ## @brief convert a hexadecimal number (base 16) to decimal (base 10)
@@ -357,11 +349,10 @@ remove_local_user() {
 ## echo "DEADBEEF in decimal is $(hex_to_dec "DEADBEEF")"
 ## @endcode
 hex_to_dec() {
-  in="${1?No input provided}"
+	in="${1?No input provided}"
 
-  echo "scale=0; ibase=16; obase=10; $(echo "$in" | tr '[:lower:]' '[:upper:]')" | bc
+	echo "scale=0; ibase=16; obase=10; $(echo "$in" | tr '[:lower:]' '[:upper:]')" | bc
 }
-
 
 ## @fn name_to_id()
 ## @brief convert a user/group name, create a uid/gid from it
@@ -396,32 +387,31 @@ hex_to_dec() {
 ## uid="$(name_to_uid "wes" "passwd")" || exit 1
 ## @endcode
 name_to_id() {
-  string="${1?No string provided}"
-  database="${2?No database provided}"
-  max_tries="${3:-10}"
+	string="${1?No string provided}"
+	database="${2?No database provided}"
+	max_tries="${3:-10}"
 
-  local max_id=65535
-  local min_id=2000
-  local mod_id=$((max_id - min_id))
+	local max_id=65535
+	local min_id=2000
+	local mod_id=$((max_id - min_id))
 
-  local try=0
+	local try=0
 
-  while [ "$try" -lt "$max_tries" ] ; do
-    local hash_string
-    hash_string="$(echo -n "$string" | sha1sum | head -c40)"
-    id="$(echo "$min_id + $(hex_to_dec "$hash_string") % $mod_id" | bc)"
+	while [ "$try" -lt "$max_tries" ]; do
+		local hash_string
+		hash_string="$(echo -n "$string" | sha1sum | head -c40)"
+		id="$(echo "$min_id + $(hex_to_dec "$hash_string") % $mod_id" | bc)"
 
-    if check_id "$string" "$id" "$database" ; then
-      echo "$id"
-      return 0
-    else
-      (( try++ ))
-    fi
-  done
+		if check_id "$string" "$id" "$database"; then
+			echo "$id"
+			return 0
+		else
+			((try++))
+		fi
+	done
 
-  return 1
+	return 1
 }
-
 
 ## @fn check_id()
 ## @brief see if there's a collison between this name and this id
@@ -442,22 +432,21 @@ name_to_id() {
 ## if check_id "wes" 1000 passwd ; then echo "Cool" ; fi
 ## @endcode
 check_id() {
-  name="${1?No name provided}"
-  id="${2?No id provided}"
-  database="${3?No database provided}"
+	name="${1?No name provided}"
+	id="${2?No id provided}"
+	database="${3?No database provided}"
 
-  if ! output="$(getent "$database" "$name")" ; then
-    return 0 # true -- if it doesn't exist yet, we're good
-  else
+	if ! output="$(getent "$database" "$name")"; then
+		return 0 # true -- if it doesn't exist yet, we're good
+	else
 
-    if [[ "$output" =~ :${id}: ]] ; then
-      return 0 # if the name matches the id, we're good
-    else
-      return 1 # if the name doesn't match the id, something's wrong
-    fi
-  fi
+		if [[ "$output" =~ :${id}: ]]; then
+			return 0 # if the name matches the id, we're good
+		else
+			return 1 # if the name doesn't match the id, something's wrong
+		fi
+	fi
 }
-
 
 ## @fn check_remote_group()
 ## @brief determine if a username belongs to an AWS IAM group
@@ -479,20 +468,23 @@ check_id() {
 ##@endcode
 check_remote_group() {
 
-  username="${1?No username passed}"
-  remote_group="${2?No remote_group passed}"
+	username="${1?No username passed}"
+	remote_group="${2?No remote_group passed}"
 
-  remote_group_exists="$(aws iam get-group --group-name "$remote_group" > /dev/null 2>&1 ; echo $?)"
+	remote_group_exists="$(
+		aws iam get-group --group-name "$remote_group" >/dev/null 2>&1
+		echo $?
+	)"
 
-  if is_true "$remote_group_exists" ; then
-    if ! aws iam list-groups-for-user --user-name "${username}" --output text --query "Groups[?GroupName=='${remote_group}'].GroupName" | grep -q "${remote_group}" ; then
-      remove_local_user "$username" ; return 1
-    fi
-  fi
+	if is_true "$remote_group_exists"; then
+		if ! aws iam list-groups-for-user --user-name "${username}" --output text --query "Groups[?GroupName=='${remote_group}'].GroupName" | grep -q "${remote_group}"; then
+			remove_local_user "$username"
+			return 1
+		fi
+	fi
 
-  return 0
+	return 0
 }
-
 
 ## @fn check_remote_user()
 ## @brief determine if a username exists remotely
@@ -508,17 +500,16 @@ check_remote_group() {
 ## fi
 ## @endcode
 check_remote_user() {
-  username="${1?No username provided}"
+	username="${1?No username provided}"
 
-  user_data="$(aws iam get-user --user-name "$username" --output text)"
+	user_data="$(aws iam get-user --user-name "$username" --output text)"
 
-  if [[ "$user_data" =~ arn:aws ]] ; then
-    return 0
-  else
-    return 1
-  fi
+	if [[ "$user_data" =~ arn:aws ]]; then
+		return 0
+	else
+		return 1
+	fi
 }
-
 
 ## @fn get_public_keys()
 ## @brief write the public portion of the user's SSH keys to STDOUT
@@ -531,19 +522,18 @@ check_remote_user() {
 ## @retval 1 (False)
 get_public_keys() {
 
-  local found_public_key=1
-  for key_id in $(aws iam list-ssh-public-keys --user-name "${username}" --query "SSHPublicKeys[?Status=='Active'].SSHPublicKeyId" --output text) ; do
-    aws iam get-ssh-public-key --user-name "${username}" --ssh-public-key-id "${key_id}" --encoding SSH --query "SSHPublicKey.SSHPublicKeyBody" --output text
-    found_public_key=0
-  done
+	local found_public_key=1
+	for key_id in $(aws iam list-ssh-public-keys --user-name "${username}" --query "SSHPublicKeys[?Status=='Active'].SSHPublicKeyId" --output text); do
+		aws iam get-ssh-public-key --user-name "${username}" --ssh-public-key-id "${key_id}" --encoding SSH --query "SSHPublicKey.SSHPublicKeyBody" --output text
+		found_public_key=0
+	done
 
-  if [ $found_public_key -eq 0 ] ; then
-    return 0 # True
-  else
-    return 1 # False
-  fi
+	if [ $found_public_key -eq 0 ]; then
+		return 0 # True
+	else
+		return 1 # False
+	fi
 }
-
 
 ## @fn show_help()
 ## @brief display a help message then exit the program
@@ -569,32 +559,32 @@ get_public_keys() {
 ## @endcode
 show_help() {
 
-  md_header "$(basename "$0")" "="
+	md_header "$(basename "$0")" "="
 
-  sed \
-    --zero-terminated \
-    --regexp-extended \
-    --expression='s/.*@[Bb]rief *(.*)@[Aa]uthor *([^\n]*).*/Overview\n--------\n\n\1Author\n------\n\n\2\n/' \
-    --regexp-extended --expression='s/\B@[a-z]* *//g' \
-    --regexp-extended --expression='s/##[^ ]/\n/g' \
-    --regexp-extended --expression 's/## //g' \
-    "$0"
+	sed \
+		--zero-terminated \
+		--regexp-extended \
+		--expression='s/.*@[Bb]rief *(.*)@[Aa]uthor *([^\n]*).*/Overview\n--------\n\n\1Author\n------\n\n\2\n/' \
+		--regexp-extended --expression='s/\B@[a-z]* *//g' \
+		--regexp-extended --expression='s/##[^ ]/\n/g' \
+		--regexp-extended --expression 's/## //g' \
+		"$0"
 
-  md_header "Parameters" "-"
+	md_header "Parameters" "-"
 
- sed \
-   --quiet \
-   --regexp-extended \
-   --expression='s/^ *([A-Z]) * \).*#{2}- */* -\1 : /ip' \
-   "$0" \
-   | sort --ignore-case
+	sed \
+		--quiet \
+		--regexp-extended \
+		--expression='s/^ *([A-Z]) * \).*#{2}- */* -\1 : /ip' \
+		"$0" |
+		sort --ignore-case
 
-  md_header "Defaults" "-"
+	md_header "Defaults" "-"
 
-  sed \
-    --regexp-extended \
-    --quiet \
-    --expression='
+	sed \
+		--regexp-extended \
+		--quiet \
+		--expression='
       /^[[:space:]]*##[[:space:]]*@var/ {
          s/^[[:space:]]*##[[:space:]]*@var[[:space:]]*((DEFAULT_)?([^[:space:]]+))(.*)/* \3: \4/;
          p;
@@ -602,9 +592,8 @@ show_help() {
          s/([^=]*=)(.*)$/  (default: \2)/;
          p;
       }' \
-    "$0"
+		"$0"
 }
-
 
 create_user="$(is_true "$DEFAULT_CREATE_USER")"   # -u
 remove_user="$(is_true "$DEFAULT_REMOVE_USER")"   # -r
@@ -613,64 +602,77 @@ manage_group="$(is_true "$DEFAULT_MANAGE_GROUP")" # -m
 remote_group="$DEFAULT_REMOTE_GROUP"              # -g
 local_group="$DEFAULT_LOCAL_GROUP"                # -l
 
-while getopts "urcmg:l:h" option ; do
-  case "$option" in
-    u ) create_user=$((1 - create_user)) ;; ##- create local user
-    r ) remove_user=$((1 - remove_user)) ;; ##- remove local user
-    h ) show_help ; exit 0 ;; ##- show help text
-    g ) remote_group="$OPTARG" ;; ##- the remote group to query
-    l ) local_group="$OPTARG" ;; ##- the local group to create
-    c ) create_group=$((1 - create_group)) ;; ##- create local group
-    m ) manage_group=$((1 - manage_group)) ;; ##- mange local group members
-    * ) echo "Invalid option '$option'" 1>&2 ; show_help 1>&2 ; exit 1 ;;
-  esac
+while getopts "urcmg:l:h" option; do
+	case "$option" in
+	u) create_user=$((1 - create_user)) ;; ##- create local user
+	r) remove_user=$((1 - remove_user)) ;; ##- remove local user
+	h)
+		show_help
+		exit 0
+		;;                                      ##- show help text
+	g) remote_group="$OPTARG" ;;             ##- the remote group to query
+	l) local_group="$OPTARG" ;;              ##- the local group to create
+	c) create_group=$((1 - create_group)) ;; ##- create local group
+	m) manage_group=$((1 - manage_group)) ;; ##- mange local group members
+	*)
+		echo "Invalid option '$option'" 1>&2
+		show_help 1>&2
+		exit 1
+		;;
+	esac
 done
 
 shift $((OPTIND - 1))
 
 username="${1?No username provided}"
 
-if ! numeric_uid="$(name_to_id "$username" "passwd")" ; then
-  logger -s "Could not find an appropriate UID for '$username'"
-  exit 1
+if ! numeric_uid="$(name_to_id "$username" "passwd")"; then
+	logger -s "Could not find an appropriate UID for '$username'"
+	exit 1
 fi
 
-if [ -n "$local_group" ] \
-&& ! numeric_gid="$(name_to_id "$local_group" "group")" ; then
-  logger is "Could not find an appropriate GID for '$local_group'"
-  exit 1
+if [ -n "$local_group" ] &&
+	! numeric_gid="$(name_to_id "$local_group" "group")"; then
+	logger is "Could not find an appropriate GID for '$local_group'"
+	exit 1
 fi
 
-local_user_exists="$(getent passwd "$username" > /dev/null ; echo "$?")"
-local_group_exists="$(getent group "$local_group" > /dev/null ; echo "$?")"
+local_user_exists="$(
+	getent passwd "$username" >/dev/null
+	echo "$?"
+)"
+local_group_exists="$(
+	getent group "$local_group" >/dev/null
+	echo "$?"
+)"
 
-if ! remote_user_exists="$(check_remote_user "$username")" ; then
-  logger -s "User '$username' does not exist remotely."
-  exit 1
+if ! remote_user_exists="$(check_remote_user "$username")"; then
+	logger -s "User '$username' does not exist remotely."
+	exit 1
 fi
 
-if [ -n "$remote_group" ] \
-&& ! check_remote_group "$username" "$remote_group" ; then
-  logger -s "This user does not belong to the provided group"
-  exit 1
+if [ -n "$remote_group" ] &&
+	! check_remote_group "$username" "$remote_group"; then
+	logger -s "This user does not belong to the provided group"
+	exit 1
 fi
 
-if ! create_local_user "$username" "$numeric_uid" ; then
-  logger -s "Could not create local user '$username' (uid: $numeric_uid)"
-  exit 1
+if ! create_local_user "$username" "$numeric_uid"; then
+	logger -s "Could not create local user '$username' (uid: $numeric_uid)"
+	exit 1
 fi
 
-if ! create_local_group "$local_group" "$numeric_gid" ; then
-  logger -s "Could not create local group '$local_group' (gid: $numeric_gid)"
-  exit 1
+if ! create_local_group "$local_group" "$numeric_gid"; then
+	logger -s "Could not create local group '$local_group' (gid: $numeric_gid)"
+	exit 1
 fi
 
-if ! add_user_to_group "$username" "$local_group" ; then
-  logger -s "Could not add user '$username' to group '$local_group'"
-  exit 1
+if ! add_user_to_group "$username" "$local_group"; then
+	logger -s "Could not add user '$username' to group '$local_group'"
+	exit 1
 fi
 
-if ! get_public_keys "$username" ; then
-  logger -s "Could not retrieve SSH public keys for '$username'"
-  exit 1
+if ! get_public_keys "$username"; then
+	logger -s "Could not retrieve SSH public keys for '$username'"
+	exit 1
 fi
