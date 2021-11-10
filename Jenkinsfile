@@ -1,7 +1,7 @@
 
 pipeline {
     parameters {
-        string (
+        string(
             name: 'git_credential',
             defaultValue: 'github-wesley-dean',
             description: 'the ID of the credential to use to interact with GitHub'
