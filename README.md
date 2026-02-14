@@ -1,11 +1,8 @@
+# AWS SSH Authentication Helper
 
-aws_ssh_authentication_helper.bash
-==================================
+## Overview
 
-Overview
---------
-
-allow users to authenticate via SSH public keys in AWS Code Commit
+This tool allow users to authenticate via SSH public keys in AWS Code Commit.
 
 AWS's Code Commit service allows users to associate SSH keys with their
 AWS accounts.  This tool allows a system to authenticate incoming SSH
@@ -28,8 +25,7 @@ provided; if so, the tool will verify that the user exists in that group
 before permitting authentication.  The group to query may be specified
 via '-g' followed by the name of the AWS IAM group.
 
-User Creation
--------------
+## User Creation
 
 When users attempt to connect, this tool can create their accounts
 automatically.  Accounts will only be created if the username matches
@@ -38,8 +34,7 @@ only be created if that AWS IAM user exists in that AWS IAM group.
 
 User creation is disabled by default but may be enabled via '-u'
 
-Local Groups
-------------
+## Local Groups
 
 The tool also supports group management in that when users attempt to
 authenticate, they can be automatically added to a local (non-IAM) group.
@@ -52,8 +47,7 @@ time, is not restricted to only new users being created for the first
 time.  That is, if the manage group setting is enabled and a previously
 seen user attempts to login, they will be added to that group.
 
-User Removal
-------------
+## User Removal
 
 When a user attempts to authenticate and either they do not belong to
 the required AWS IAM group or there is no corresponding AWS IAM user
@@ -64,8 +58,7 @@ Regardless of the remove user setting, users who do not have an
 enabled AWS IAM user account or are not in a specified
 AWS IAM group will be denied authentication.
 
-AWS IAM Access
---------------
+## AWS IAM Access
 
 It's notable that changes made in AWS only affect new connections;
 that is, if a user is already logged in and then their AWS IAM
@@ -108,8 +101,7 @@ Consider the following AWS IAM policy:
 
 ```
 
-SSHD setup
-----------
+## SSHD setup
 
 The SSH daemon needs to be configured to use this script to acquire
 the "authorized_keys" files (i.e., the list of public portions of
@@ -131,13 +123,11 @@ used.  If, however, accounts and groups will be managed manually,
 then `nobody` may be used.  Using `nobody` is much more secure;
 however, it also requires manual work to create accounts and such.
 
-Author
-------
+## Author
 
-Wes Dean <wdean@flexion.us>
+Wes Dean
 
-Parameters
-----------
+## Parameters
 
 * -c : create local group
 * -g : the remote group to query
@@ -147,8 +137,7 @@ Parameters
 * -r : remove local user
 * -u : create local user
 
-Defaults
---------
+## Defaults
 
 * CREATE_USER:  default for whether to create local users
   (default: "false")
